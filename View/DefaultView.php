@@ -25,7 +25,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  *
  * It is of course extensible and overrideable to provide a very flexible solution
  *
- * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author Jordi Boggiano <j.boggiano@seld.be>
  * @author Lukas K. Smith <smith@pooteeweet.org>
  */
