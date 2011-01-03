@@ -36,6 +36,8 @@ class DefaultView
 
     protected $redirect;
     protected $template;
+    protected $renderer;
+    protected $format;
     protected $parameters;
 
     /**
@@ -50,6 +52,7 @@ class DefaultView
      */
     public function __construct(ContainerInterface $container, array $globalParameters = array())
     {
+        $this->reset();
         $this->container = $container;
         $this->globalParameters = $globalParameters;
     }
@@ -76,7 +79,7 @@ class DefaultView
      * @param array $parameters route parameters
      * @param int $code optional http status code
      */
-    public function setRouteRedirect($route, $parameters = array(), $code = 302)
+    public function setRouteRedirect($route, array $parameters = array(), $code = 302)
     {
         $this->redirect = array(
             'location' => $this->container->get('router')->generate($route, $parameters),
@@ -100,7 +103,7 @@ class DefaultView
         return $this->redirect;
     }
 
-    public function setParameters(array $parameters)
+    public function setParameters($parameters)
     {
         $this->parameters = $parameters;
     }
@@ -112,12 +115,48 @@ class DefaultView
 
     public function setTemplate($template)
     {
+        if (is_array($template) && !isset($template['name'])) {
+            throw new \InvalidArgumentException("When defining the template as an array a 'name' key is required");
+        }
+
         $this->template = $template;
     }
 
     public function getTemplate()
     {
-        return $this->template;
+        if (is_string($this->template)) {
+            return $this->template;
+        }
+
+        $name = $this->template['name'];
+
+        $format = empty($this->template['format'])
+            ? $this->getFormat() : $this->template['format'];
+
+        $renderer = empty($this->template['renderer'])
+            ? $this->getRenderer() : $this->template['renderer'];
+
+        return "$name.$format.$renderer";
+    }
+
+    public function setRenderer($renderer)
+    {
+        $this->renderer = $renderer;
+    }
+
+    public function getRenderer()
+    {
+        return $this->renderer;
+    }
+
+    public function setFormat($format)
+    {
+        $this->format = $format;
+    }
+
+    public function getFormat()
+    {
+        return $this->format;
     }
 
     public function setGlobalParameters(array $globalParameters)
@@ -161,7 +200,11 @@ class DefaultView
             $response = $this->container->get('response');
         }
 
-        $format = $request->getRequestFormat();
+        if (null === $this->format) {
+            $this->setFormat($request->getRequestFormat());
+        }
+
+        $format = $this->getFormat();
 
         if (isset($this->customHandlers[$format])) {
             $callback = $this->customHandlers[$format];
@@ -169,7 +212,7 @@ class DefaultView
         } else {
             $method = 'handle'.ucfirst($format);
             if (!method_exists($this, $method)) {
-                throw new NotFoundHttpException('Format '.$request->attributes->get('_format').' not supported, handler must be implemented');
+                throw new NotFoundHttpException("Format '$format' not supported, handler must be implemented");
             }
             $response = $this->$method($request, $response);
         }
@@ -185,7 +228,9 @@ class DefaultView
     {
         $this->redirect = null;
         $this->template = null;
-        $this->parameters = null;
+        $this->renderer = 'twig';
+        $this->format = null;
+        $this->parameters;
     }
 
     /**
@@ -238,14 +283,15 @@ class DefaultView
      *
      * @param Request $request
      * @param Response $response
-     * @param array $parameters
+     * @param mixed $parameters
      *
      * @return string
      */
     protected function transformHtml(Request $request, Response $response, $parameters)
     {
+        $parameters = (array)$parameters;
         $parameters = array_merge($this->globalParameters, $parameters);
-        return $this->container->get('templating')->render($this->template, $parameters);
+        return $this->container->get('templating')->render($this->getTemplate($request), $parameters);
     }
 
     /**
@@ -269,12 +315,13 @@ class DefaultView
      *
      * @param Request $request
      * @param Response $response
-     * @param array $parameters
+     * @param mixed $parameters
      *
      * @return string
      */
     protected function transformJson(Request $request, Response $response, $parameters)
     {
+        $parameters = (array)$parameters;
         return json_encode($this->parametersToArray($parameters));
     }
 
@@ -299,7 +346,7 @@ class DefaultView
      *
      * @param Request $request
      * @param Response $response
-     * @param array $parameters
+     * @param mixed $parameters
      *
      * @return string
      */
