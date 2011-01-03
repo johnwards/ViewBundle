@@ -271,7 +271,6 @@ Another example custom handler, this time to handle RSS:
         }
     }
 
-
 Handling Redirects
 ------------------
 
@@ -282,7 +281,8 @@ redirects. Consider the following example:
     {
         // .. perform some update logic
 
-        return $this->redirectToRoute('article_show', array('slug' => $slug));
+        $this->view->setRouteRedirect('article_show', array('slug' => $slug));
+        return $this->view->handle();
     }
 
 In all formats, the default behavior is to create and return a ``Response``
@@ -290,9 +290,13 @@ object with a ``Location`` header and a 301 or 302 status code. This triggers
 the default redirect behavior and directs the client's browser to redirect
 to the given page.
 
-This behavior can be controlled on a format-by-format basis. Let's revisit
-the custom handler ``handleJson`` from earlier and add some redirect logic
-to it:
+This behavior can be controlled on a format-by-format basis. For example
+this can be used to immediately resolve the controller responsible for the
+redirect when redirecting to a route and return the data from said controller
+without doing any redirect at all.
+
+However for the following example let's revisit the custom handler ``handleJson``
+from earlier and add some redirect logic to it:
 
     public function handleJson(DefaultView $view, Request $request, Response $response)
     {
@@ -304,8 +308,8 @@ to it:
         // ... the remainder of the handling
     }
 
-If the original action method sets a redirect via ``redirectToRoute`` or
-``redirectToUri``, the information is stored in the ``$view`` variable.
+If the original action method sets a redirect via ``setRouteRedirect`` or
+``setRouteUri``, the information is stored in the ``$view`` service.
 In the above code, we've implemented the default redirect behavior: the
 redirect is set on the ``Response`` object and returned.
 
