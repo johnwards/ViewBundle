@@ -43,87 +43,12 @@ process is much more powerful.
 Basic Use
 ---------
 
-
-    class MyController
-    {
-        public function viewArticleAction($articleId)
-        {
-            $article = $this->articleRepository->getById($articleId);
-            $parameters = array(
-                'article' => $article,
-            );
-
-            // beginner
-            return $this->handle($parameters, 'MyBundle:My:view.twig');
-
-            // advanced
-            $view = $this->view;
-            $view->setParameters($parameters);
-            $view->setTemplate('MyBundle:My:view.twig');
-            return $view->handle($this->request);
-        }
-    }
-
-
-Global Parameters
-~~~~~~~~~~~~~~~~~
-
-The centralized view object also allows for any number of parameters to be
-passed into every template. These global parameters can be set in the view
-configuration and then accessed inside any template that uses the view layer.
-
-
-Setting static parameters in the service definition
-
-    services:
-        MyView:
-            class: Application\MyBundle\View\MyView
-            arguments:
-                container: @service_container
-                params:
-                    yuiCDN: %foo.yuiCDN%
-                    yuiFilter: %foo.yuiFilter%
-                    yuiModules: %foo.yuiModules%
-                    cssURL: %foo.cssURL%
-                    active_tab: ''
-            shared: true
-        MyDefault:
-            class: Application\MyBundle\Controller\DefaultController
-            arguments:
-                view: @MyView
-
-Setting dynamic parameters by extending the base class
-
-    <?php
-
-    namespace Application\MyBundle\View;
-
-    use Symfony\Component\HttpFoundation\Response;
-    use Symfony\Component\HttpFoundation\Request;
-
-    class MyView extends \Bundle\Liip\ViewBundle\View\DefaultView
-    {
-        /**
-        Html parameter transformer
-         *
-        Merges the global parameters with the given parameters and then
-        renders the given template
-         *
-        @param Request $request
-        @param Response $response
-        @param array $parameters
-         *
-        @return string
-         */
-        protected function transformHtml(Request $request, Response $response, array $parameters)
-        {
-            $parameters['user'] = $this->container->get('security.context')->getUser();
-            $parameters['csrf_token'] = hash('md5', $this->container->getParameter('csrf_secret').session_id());
-            $parameters['debug'] = $this->container->getParameter('kernel.debug');
-
-            return parent::transformHtml($request, $response, $parameters);
-        }
-    }
+Basically all that is needed is to call the handle() method. However usually one will also
+want to call the setTemplate() method to set a template. However by default the template is
+only used if the format is HTML. Passing parameters is done via the setParameters() method.
+When the format is HTML the parameters will be passed to the template layer, while for
+XML and JSON the parameters serialized accordingly without going through the template layer
+at all.
 
     <?php
 
@@ -157,8 +82,86 @@ Setting dynamic parameters by extending the base class
             $this->view->setTemplate('MyBundle:Default:index.twig');
             return $this->view->handle();
         }
+
+        /**
+         * Handle showing article request
+         *
+         * @return Symfony\Component\HttpFoundation\Response
+         */
+        public function viewArticleAction($articleId)
+        {
+            $article = $this->articleRepository->getById($articleId);
+            $parameters = array(
+                'article' => $article,
+            );
+
+            // Get the view service from the container or inject it in the constructor
+            $view = $this->view;
+            $view->setParameters($parameters);
+            $view->setTemplate('MyBundle:My:view.twig');
+            return $view->handle($this->request);
+        }
     }
 
+
+Global Parameters
+~~~~~~~~~~~~~~~~~
+
+The centralized view object also allows for any number of parameters to be
+passed into every template. These global parameters can be set in the view
+configuration and then accessed inside any template that uses the view layer.
+
+Setting static parameters in the service definition:
+
+    services:
+        MyView:
+            class: Application\MyBundle\View\MyView
+            arguments:
+                container: @service_container
+                params:
+                    yuiCDN: %foo.yuiCDN%
+                    yuiFilter: %foo.yuiFilter%
+                    yuiModules: %foo.yuiModules%
+                    cssURL: %foo.cssURL%
+                    active_tab: ''
+            shared: true
+        MyDefault:
+            class: Application\MyBundle\Controller\DefaultController
+            arguments:
+                view: @MyView
+
+Setting dynamic parameters by extending the base class:
+
+    <?php
+
+    namespace Application\MyBundle\View;
+
+    use Symfony\Component\HttpFoundation\Response;
+    use Symfony\Component\HttpFoundation\Request;
+
+    class MyView extends \Bundle\Liip\ViewBundle\View\DefaultView
+    {
+        /**
+         * Html parameter transformer
+         *
+         * Merges the global parameters with the given parameters and then
+         * renders the given template
+         *
+         * @param Request $request
+         * @param Response $response
+         * @param array $parameters
+         *
+         * @return string
+         */
+        protected function transformHtml(Request $request, Response $response, array $parameters)
+        {
+            $parameters['user'] = $this->container->get('security.context')->getUser();
+            $parameters['csrf_token'] = hash('md5', $this->container->getParameter('csrf_secret').session_id());
+            $parameters['debug'] = $this->container->getParameter('kernel.debug');
+
+            return parent::transformHtml($request, $response, $parameters);
+        }
+    }
 
 The View with different Request Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
