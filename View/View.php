@@ -4,7 +4,6 @@ namespace Bundle\Liip\ViewBundle\View;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,22 +17,17 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 
 /**
- * DefaultView is a default view implementation
+ * View is a default view implementation
  *
  * Use it in controllers to build up a response in a format agnostic way
  * The View class takes care of encoding your data in json, xml, or renders a template for html.
  *
- * It is of course extensible and overrideable to provide a very flexible solution
- *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  * @author Lukas K. Smith <smith@pooteeweet.org>
  */
-class DefaultView
+class View extends AbstractView
 {
-    protected $container;
     protected $globalParameters;
-    protected $customHandlers = array();
-
     protected $redirect;
     protected $template;
     protected $parameters;
@@ -45,28 +39,11 @@ class DefaultView
      * normal parameters before rendering an html template, which makes them useful for
      * data that you need to have accessible in the layout for every page on your site.
      *
-     * @param ContainerInterface $container The service_container service.
      * @param array $globalParameters optional global array of parameters for html templates
      */
-    public function __construct(ContainerInterface $container, array $globalParameters = array())
+    public function __construct(array $globalParameters = array())
     {
-        $this->container = $container;
         $this->globalParameters = $globalParameters;
-    }
-
-    /**
-     * Registers a custom handler
-     *
-     * The handler must have the following signature: handler($viewObject, $request, $response)
-     * It can use the public methods of this class to retrieve the needed data and return a
-     * Response object ready to be sent.
-     *
-     * @param string $format the format that is handled
-     * @param callback $callback handler callback
-     */
-    public function registerHandler($format, $callback)
-    {
-        $this->customHandlers[$format] = $callback;
     }
 
     /**
@@ -131,17 +108,6 @@ class DefaultView
     }
 
     /**
-     * Verifies whether the given format is supported by this view
-     *
-     * @param string $format format name
-     * @return bool
-     */
-    public function supports($format)
-    {
-        return isset($this->customHandlers[$format]) || method_exists($this, 'handle'.ucfirst($format));
-    }
-
-    /**
      * Handles a request with the proper handler
      *
      * Decides on which handler to use based on the request format
@@ -149,22 +115,20 @@ class DefaultView
      * @param Request $request Request object
      * @param Response $response optional response object to use
      *
-     * @param Response
+     * @return Response
      */
     public function handle(Request $request = null, Response $response = null)
     {
         if (null === $request) {
             $request = $this->container->get('request');
         }
-
         if (null === $response) {
             $response = $this->container->get('response');
         }
-
         $format = $request->getRequestFormat();
 
-        if (isset($this->customHandlers[$format])) {
-            $callback = $this->customHandlers[$format];
+        if (isset($this->handlers[$format])) {
+            $callback = $this->handlers[$format];
             $response = call_user_func($callback, $this, $request, $response);
         } else {
             $method = 'handle'.ucfirst($format);
@@ -174,18 +138,7 @@ class DefaultView
             $response = $this->$method($request, $response);
         }
 
-        $this->reset();
         return $response;
-    }
-
-    /**
-     * Resets the state of the view object
-     */
-    public function reset()
-    {
-        $this->redirect = null;
-        $this->template = null;
-        $this->parameters = null;
     }
 
     /**
