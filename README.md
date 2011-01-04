@@ -6,6 +6,11 @@ The idea is that all output specific logic is handled in a separate view layer.
 This means there is no need to write format specific code into the controller,
 making the solution more flexible and maintainable.
 
+It should be noted once more that the main purpose of the view layer is to enable reuse
+and separation of view related logic. It cannot cover all use cases for everybody.
+However it should provide all required extension points to do anything view related
+without having to touch the controller logic.
+
 Status Quo
 ----------
 
@@ -43,11 +48,11 @@ process is much more powerful.
 Basic Use
 ---------
 
-Basically all that is needed is to call the handle() method. However usually one will also
-want to call the setTemplate() method to set a template. However by default the template is
-only used if the format is HTML. Passing parameters is done via the setParameters() method.
-When the format is HTML the parameters will be passed to the template layer, while for
-XML and JSON the parameters serialized accordingly without going through the template layer
+Basically all that is needed is to call the ``handle()`` method. However usually one will also
+want to call the ``setTemplate()`` method to set a template. However by default the template is
+only used if the format is ``html``. Passing parameters is done via the ``setParameters()`` method.
+When the format is ``html`` the parameters will be passed to the template layer, while for
+``xml`` and ``json`` the parameters serialized accordingly without going through the template layer
 at all.
 
     <?php
@@ -105,7 +110,7 @@ at all.
 
 
 Global Parameters
-~~~~~~~~~~~~~~~~~
+-----------------
 
 The centralized view object also allows for any number of parameters to be
 passed into every template. These global parameters can be set in the view
@@ -123,7 +128,6 @@ Setting static parameters in the service definition:
                     yuiFilter: %foo.yuiFilter%
                     yuiModules: %foo.yuiModules%
                     cssURL: %foo.cssURL%
-                    active_tab: ''
             shared: true
         MyDefault:
             class: Application\MyBundle\Controller\DefaultController
@@ -149,12 +153,13 @@ Setting dynamic parameters by extending the base class:
          *
          * @param Request $request
          * @param Response $response
-         * @param array $parameters
+         * @param mixed $parameters
          *
          * @return string
          */
-        protected function transformHtml(Request $request, Response $response, array $parameters)
+        protected function transformHtml(Request $request, Response $response, $parameters)
         {
+            $parameters = (array)$parameters;
             $parameters['user'] = $this->container->get('security.context')->getUser();
             $parameters['csrf_token'] = hash('md5', $this->container->getParameter('csrf_secret').session_id());
             $parameters['debug'] = $this->container->getParameter('kernel.debug');
@@ -164,7 +169,7 @@ Setting dynamic parameters by extending the base class:
     }
 
 The View with different Request Formats
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 The ``DefaultView`` object behaves differently based on the request format.
 By default, three request formats are supported
@@ -245,7 +250,7 @@ Another example custom handler, this time to handle RSS:
     {
         public function rssFeedAction()
         {
-            // Could be done via DIC config
+            // Could also be set via DIC config
             $this->view->registerHandler('rss', array($this, 'handleRss'));
 
             $data = array('news' => $this->newsRepository->getLatestNews());
@@ -332,12 +337,3 @@ Javascript code:
 In this case, if the request format is JSON, a JSON-encoded array will be
 returned with a status code of 200. Your client-side Javascript can handle
 the redirect however you choose.
-
-Transforming Parameters to JSON
--------------------------------
-
-Transforming Parameters and XML
--------------------------------
-
-Creating your own View
-----------------------
