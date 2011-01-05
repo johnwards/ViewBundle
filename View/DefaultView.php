@@ -202,7 +202,7 @@ class DefaultView
         $this->redirect = null;
         $this->template = null;
         $this->format = null;
-        $this->parameters;
+        $this->parameters = array();
     }
 
     /**
