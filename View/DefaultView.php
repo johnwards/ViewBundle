@@ -263,7 +263,7 @@ class DefaultView
     {
         $parameters = (array)$parameters;
         $parameters = array_merge($this->globalParameters, $parameters);
-        return $this->container->get('templating')->render($this->getTemplate(), $parameters);
+        return $this->container->get('templating')->render($this->getTemplate().'.html', $parameters);
     }
 
     /**
