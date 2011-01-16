@@ -26,7 +26,7 @@ returns a ``Response`` object:
 
         // create a Response object using the content from a template
         return new Response($this->renderView(
-            'MyBundle:Mycontroller:index.twig',
+            'MyBundle:Mycontroller:index.twig.html',
             array('name' => $name)
         ));
     }
@@ -160,7 +160,6 @@ Setting dynamic parameters by extending the base class:
         protected function transformHtml(Request $request, Response $response, $parameters)
         {
             $parameters = (array)$parameters;
-            $parameters['user'] = $this->container->get('security.context')->getUser();
             $parameters['csrf_token'] = hash('md5', $this->container->getParameter('csrf_secret').session_id());
             $parameters['debug'] = $this->container->getParameter('kernel.debug');
 
@@ -187,7 +186,7 @@ Support for any number of other formats can be added (see `Custom Format Handler
 
 In our example, the three formats would be handled in the following ways:
 
-* ``html`` The ``MyBundle:MyController:index.twig`` is rendered normally;
+* ``html`` ``MyBundle:MyController:index.twig.html`` is rendered;
 
 * ``json``: The ``array('name' => $name))`` is json-encoded and the resulting
   string is used to populate the ``Response`` object;
@@ -219,12 +218,12 @@ the view attempts to handle a specific format:
 
 When the request format is ``json``, the method ``handleJson`` will be called
 on the controller object. Suppose that we'd like to render the
-``MyBundle:MyController:index.twig`` template and use it to build a JSON
+``MyBundle:MyController:index.twig.json`` template and use it to build a JSON
 array:
 
     public function handleJson(DefaultView $view, Request $request, Response $response)
     {
-        $content = $this->renderView($view->getTemplate(), $view->getParameters());
+        $content = $this->renderView($view->getTemplate().'.json', $view->getParameters());
         $json = json_encode(array('content' => $content, 'timestamp' => time()));
         $response->setContent($json);
 
