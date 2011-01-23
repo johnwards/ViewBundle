@@ -20,17 +20,21 @@ class ViewExtension extends Extension
     /**
      * Loads the services based on your application configuration.
      *
-     * @param array $config
+     * @param array $configs
      * @param ContainerBuilder $container
      */
-    public function configLoad($config, ContainerBuilder $container)
+    public function configLoad($configs, ContainerBuilder $container)
     {
-        // TODO: merge configs
-        $config = reset($config);
+        $config = array_pop($configs);
+        foreach ($configs as $tmp) {
+            $config = array_merge($config, $tmp);
+        }
 
-        if (!$container->hasDefinition('view')) {
-            $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
-            $loader->load('config.xml');
+        $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
+        $loader->load('config.xml');
+
+        foreach ($config as $key => $value) {
+            $container->setParameter($this->getAlias().'.'.$key, $value);
         }
     }
 
