@@ -17,7 +17,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class LiipViewBundle extends Bundle
 {
-
     public function getNamespace()
     {
         return __NAMESPACE__;

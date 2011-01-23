@@ -143,7 +143,7 @@ Setting dynamic parameters by extending the base class:
     use Symfony\Component\HttpFoundation\Response;
     use Symfony\Component\HttpFoundation\Request;
 
-    class MyView extends \Bundle\Liip\ViewBundle\View\DefaultView
+    class MyView extends \Liip\ViewBundle\View\DefaultView
     {
         /**
          * Html parameter transformer
