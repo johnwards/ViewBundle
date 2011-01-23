@@ -1,12 +1,13 @@
 <?php
 
-namespace Bundle\Liip\ViewBundle\View;
+namespace Liip\ViewBundle\View;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Bundle\FrameworkBundle\Templating\Loader\TemplateParser;
 
 /*
  * This file is part of the Symfony framework.
@@ -38,6 +39,7 @@ class DefaultView
     protected $template;
     protected $format;
     protected $parameters;
+    protected $renderer;
 
     /**
      * Constructor
@@ -112,14 +114,36 @@ class DefaultView
         return $this->parameters;
     }
 
-    public function setTemplate($template)
+    public function setTemplate(array $template)
     {
         $this->template = $template;
     }
 
     public function getTemplate()
     {
-        return $this->template;
+        $template = $this->template;
+
+        if (empty($template['format'])) {
+            $template['format'] = $this->getFormat();
+        }
+
+        if (empty($template['renderer'])) {
+            $template['renderer'] = $this->getRenderer();
+        }
+
+        // TODO in theory we should be able to override the default TemplateNameParser to handle pre-parsed template names
+        // <parameter key="templating.name_parser.class">Liip\ViewBundle\Templating\TemplateNameParser</parameter>
+        return $template['bundle'].':'.$template['controller'].':'.$template['name'].'.'.$template['format'].'.'.$template['renderer'];
+    }
+
+    public function setRenderer($renderer)
+    {
+        $this->renderer = $renderer;
+    }
+
+    public function getRenderer()
+    {
+        return $this->renderer;
     }
 
     public function setFormat($format)
@@ -202,6 +226,7 @@ class DefaultView
         $this->redirect = null;
         $this->template = null;
         $this->format = null;
+        $this->renderer = 'twig';
         $this->parameters = array();
     }
 
@@ -263,7 +288,7 @@ class DefaultView
     {
         $parameters = (array)$parameters;
         $parameters = array_merge($this->globalParameters, $parameters);
-        return $this->container->get('templating')->render($this->getTemplate().'.html', $parameters);
+        return $this->container->get('templating')->render($this->getTemplate(), $parameters);
     }
 
     /**

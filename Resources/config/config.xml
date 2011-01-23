@@ -5,12 +5,16 @@
     xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="view.class">Bundle\Liip\ViewBundle\View\DefaultView</parameter>
+
+        <parameter key="view.class">Liip\ViewBundle\View\DefaultView</parameter>
+
     </parameters>
 
     <services>
+
         <service id="view" class="%view.class%">
             <argument type="service" id="service_container" />
         </service>
+
     </services>
 </container>
