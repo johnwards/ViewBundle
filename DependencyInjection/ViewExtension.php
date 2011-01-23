@@ -25,6 +25,9 @@ class ViewExtension extends Extension
      */
     public function configLoad($config, ContainerBuilder $container)
     {
+        // TODO: merge configs
+        $config = reset($config);
+
         if (!$container->hasDefinition('view')) {
             $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
             $loader->load('config.xml');
