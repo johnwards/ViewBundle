@@ -25,9 +25,9 @@ class ViewExtension extends Extension
      */
     public function configLoad($configs, ContainerBuilder $container)
     {
-        $config = array_pop($configs);
+        $config = array_shift($configs);
         foreach ($configs as $tmp) {
-            $config = array_merge($config, $tmp);
+            $config = array_replace_recursive($config, $tmp);
         }
 
         $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
@@ -59,6 +59,6 @@ class ViewExtension extends Extension
      */
     public function getAlias()
     {
-        return 'view';
+        return 'liip_view';
     }
 }
