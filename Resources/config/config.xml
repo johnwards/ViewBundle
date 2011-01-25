@@ -26,17 +26,17 @@
             </call>
         </service>
 
-        <service id="serializer" class="%serializer.class%">
-<!--
-            <call method="addEncoder">
-                <argument>json</argument>
-                <argument type="service" id="encoder.json" />
-            </call>
--->
-        </service>
+        <service id="serializer" class="%serializer.class%" />
 
         <service id="view" class="%view.class%">
             <argument type="service" id="service_container" />
+            <call method="setSupported">
+                <argument type="collection">
+                    <argument>html</argument>
+                    <argument>json</argument>
+                    <argument>xml</argument>
+                </argument>
+            </call>
         </service>
 
     </services>

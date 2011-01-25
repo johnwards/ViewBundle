@@ -43,6 +43,8 @@ class DefaultView
     protected $parameters;
     protected $renderer;
 
+    protected $supported = array();
+
     /**
      * Constructor
      *
@@ -178,6 +180,21 @@ class DefaultView
     }
 
     /**
+     * Sets what formats are supported
+     *
+     * @param array $supported list of supported formats
+     * @param bool $append if to append to the existing list
+     */
+    public function setSupported($supported, $append = true)
+    {
+        if ($append) {
+            $supported+= $this->supported;
+        }
+
+        $this->supported = $supported;
+    }
+
+    /**
      * Verifies whether the given format is supported by this view
      *
      * @param string $format format name
@@ -185,7 +202,7 @@ class DefaultView
      */
     public function supports($format)
     {
-        return isset($this->customHandlers[$format]) || method_exists($this, 'handle'.ucfirst($format));
+        return isset($this->customHandlers[$format]) || in_array($format, $this->supported);
     }
 
     /**
@@ -218,6 +235,9 @@ class DefaultView
             $callback = $this->customHandlers[$format];
             $response = call_user_func($callback, $this, $request, $response);
         } else {
+            if (!$this->supports($format)) {
+                throw new NotFoundHttpException("Format '$format' not supported, handler must be implemented");
+            }
             $response = $this->transform($request, $response, $format, $this->getTemplate());
         }
 
@@ -240,7 +260,7 @@ class DefaultView
     /**
      * Reset serializer service
      */
-    protected function resetSerializer()
+    public function resetSerializer()
     {
         $this->serializer = null;
     }
