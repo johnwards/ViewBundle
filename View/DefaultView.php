@@ -111,9 +111,14 @@ class DefaultView
         $this->parameters = $parameters;
     }
 
-    public function getParameters()
+    public function getParameters($withGlobals = true)
     {
-        return $this->parameters;
+        $parameters = $this->parameters;
+        if ($withGlobals) {
+            $parameters = array_merge($this->getGlobalParameters(), $parameters);
+        }
+
+        return $parameters;
     }
 
     public function setTemplate(array $template)
@@ -253,7 +258,7 @@ class DefaultView
             $this->serializer = $this->container->get('serializer');
         }
 
-        if (null !== $format && !$this->serializer->supports($format)) {
+        if (null !== $format && !$this->serializer->hasEncoder($format)) {
             $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
         }
 
@@ -286,8 +291,7 @@ class DefaultView
             $encoder->setTemplate($template);
         }
 
-        $parameters = (array)$this->parameters;
-        $content = $serializer->serialize($parameters, $format);
+        $content = $serializer->serialize($this->getParameters(), $format);
 
         $response->setContent($content);
         return $response;
