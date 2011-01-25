@@ -7,10 +7,33 @@
     <parameters>
 
         <parameter key="view.class">Liip\ViewBundle\View\DefaultView</parameter>
+        <parameter key="serializer.class">Symfony\Component\Serializer\Serializer</parameter>
+        <parameter key="encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
+        <parameter key="encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
+        <parameter key="encoder.html.class">Symfony\Component\Serializer\Encoder\HtmlEncoder</parameter>
 
     </parameters>
 
     <services>
+
+        <service id="encoder.json" class="%encoder.json.class%" />
+
+        <service id="encoder.xml" class="%encoder.xml.class%" />
+
+        <service id="encoder.html" class="%encoder.html.class%">
+            <call method="setTemplating">
+                <argument type="service" id="templating" />
+            </call>
+        </service>
+
+        <service id="serializer" class="%serializer.class%">
+<!--
+            <call method="addEncoder">
+                <argument>json</argument>
+                <argument type="service" id="encoder.json" />
+            </call>
+-->
+        </service>
 
         <service id="view" class="%view.class%">
             <argument type="service" id="service_container" />
