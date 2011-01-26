@@ -248,6 +248,36 @@ class DefaultView
     }
 
     /**
+     * Set the serializer service
+     *
+     * @param Symfony\Component\Serializer\SerializerInterface $serializer a serializer instance
+     */
+    public function setSerializer($serializer)
+    {
+        $this->serializer = $serializer;
+    }
+
+    /**
+     * Get the serializer service, add encoder in case there is none set for the given format
+     *
+     * @param string $format
+     *
+     * @return Symfony\Component\Serializer\SerializerInterface
+     */
+    public function getSerializer($format = null)
+    {
+        if (null === $this->serializer) {
+            $this->serializer = $this->container->get('serializer');
+        }
+
+        if (null !== $format && !$this->serializer->hasEncoder($format)) {
+            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
+        }
+
+        return $this->serializer;
+    }
+
+    /**
      * Handles a request with the proper handler
      *
      * Decides on which handler to use based on the request format
@@ -286,26 +316,6 @@ class DefaultView
         $this->reset();
 
         return $response;
-    }
-
-    /**
-     * Get the serializer service, add encoder in case there is none set for the given format
-     *
-     * @param string $format
-     *
-     * @return Symfony\Component\Serializer\SerializerInterface
-     */
-    protected function getSerializer($format = null)
-    {
-        if (null === $this->serializer) {
-            $this->serializer = $this->container->get('serializer');
-        }
-
-        if (null !== $format && !$this->serializer->hasEncoder($format)) {
-            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
-        }
-
-        return $this->serializer;
     }
 
     /**
