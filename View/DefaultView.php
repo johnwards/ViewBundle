@@ -30,10 +30,10 @@ use Symfony\Component\Serializer\Encoder\TemplatingAwareEncoderInterface;
 class DefaultView
 {
     protected $container;
-    protected $customHandlers = array();
-    protected $supported = array();
     protected $serializer;
+    protected $customHandlers = array();
 
+    protected $supported;
     protected $redirect;
     protected $template;
     protected $format;
@@ -44,11 +44,59 @@ class DefaultView
      * Constructor
      *
      * @param ContainerInterface $container The service_container service.
+     * @param array $supported The supported formats
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, array $supported = null)
     {
         $this->reset();
+        $this->supported = (array) $supported;
         $this->container = $container;
+    }
+
+    /**
+     * Resets the state of the view object
+     */
+    public function reset()
+    {
+        $this->redirect = null;
+        $this->template = null;
+        $this->format = null;
+        $this->engine = 'twig';
+        $this->parameters = array();
+    }
+
+    /**
+     * Reset serializer service
+     */
+    public function resetSerializer()
+    {
+        $this->serializer = null;
+    }
+
+    /**
+     * Sets what formats are supported
+     *
+     * @param array $supported list of supported formats
+     * @param bool $append if to append to the existing list
+     */
+    public function setSupported($supported, $append = true)
+    {
+        if ($append) {
+            $supported+= $this->supported;
+        }
+
+        $this->supported = $supported;
+    }
+
+    /**
+     * Verifies whether the given format is supported by this view
+     *
+     * @param string $format format name
+     * @return bool
+     */
+    public function supports($format)
+    {
+        return isset($this->customHandlers[$format]) || in_array($format, $this->supported);
     }
 
     /**
@@ -200,52 +248,6 @@ class DefaultView
     }
 
     /**
-     * Sets what formats are supported
-     *
-     * @param array $supported list of supported formats
-     * @param bool $append if to append to the existing list
-     */
-    public function setSupported($supported, $append = true)
-    {
-        if ($append) {
-            $supported+= $this->supported;
-        }
-
-        $this->supported = $supported;
-    }
-
-    /**
-     * Verifies whether the given format is supported by this view
-     *
-     * @param string $format format name
-     * @return bool
-     */
-    public function supports($format)
-    {
-        return isset($this->customHandlers[$format]) || in_array($format, $this->supported);
-    }
-
-    /**
-     * Get the serializer service, add encoder in case its not yet set for the passed format
-     *
-     * @param string $format
-     *
-     * @return Symfony\Component\Serializer\SerializerInterface
-     */
-    protected function getSerializer($format = null)
-    {
-        if (null === $this->serializer) {
-            $this->serializer = $this->container->get('serializer');
-        }
-
-        if (null !== $format && !$this->serializer->hasEncoder($format)) {
-            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
-        }
-
-        return $this->serializer;
-    }
-
-    /**
      * Handles a request with the proper handler
      *
      * Decides on which handler to use based on the request format
@@ -282,27 +284,28 @@ class DefaultView
         }
 
         $this->reset();
+
         return $response;
     }
 
     /**
-     * Resets the state of the view object
+     * Get the serializer service, add encoder in case there is none set for the given format
+     *
+     * @param string $format
+     *
+     * @return Symfony\Component\Serializer\SerializerInterface
      */
-    public function reset()
+    protected function getSerializer($format = null)
     {
-        $this->redirect = null;
-        $this->template = null;
-        $this->format = null;
-        $this->engine = 'twig';
-        $this->parameters = array();
-    }
+        if (null === $this->serializer) {
+            $this->serializer = $this->container->get('serializer');
+        }
 
-    /**
-     * Reset serializer service
-     */
-    public function resetSerializer()
-    {
-        $this->serializer = null;
+        if (null !== $format && !$this->serializer->hasEncoder($format)) {
+            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
+        }
+
+        return $this->serializer;
     }
 
     /**
