@@ -35,15 +35,14 @@ class DefaultView
     protected $container;
     protected $globalParameters;
     protected $customHandlers = array();
+    protected $supported = array();
     protected $serializer;
 
     protected $redirect;
     protected $template;
     protected $format;
     protected $parameters;
-    protected $renderer;
-
-    protected $supported = array();
+    protected $engine;
 
     /**
      * Constructor
@@ -123,15 +122,15 @@ class DefaultView
         return $parameters;
     }
 
-    public function setTemplate(array $template)
+    public function setTemplate($template)
     {
         $this->template = $template;
     }
 
     public function getTemplate()
     {
-        if (null === $this->template) {
-            return null;
+        if (!is_array($this->template)) {
+            return $this->template;
         }
 
         $template = $this->template;
@@ -140,23 +139,21 @@ class DefaultView
             $template['format'] = $this->getFormat();
         }
 
-        if (empty($template['renderer'])) {
-            $template['renderer'] = $this->getRenderer();
+        if (empty($template['engine'])) {
+            $template['engine'] = $this->getEngine();
         }
 
-        // TODO in theory we should be able to override the default TemplateNameParser to handle pre-parsed template names
-        // <parameter key="templating.name_parser.class">Liip\ViewBundle\Templating\TemplateNameParser</parameter>
-        return $template['bundle'].':'.$template['controller'].':'.$template['name'].'.'.$template['format'].'.'.$template['renderer'];
+        return $template;
     }
 
-    public function setRenderer($renderer)
+    public function setEngine($engine)
     {
-        $this->renderer = $renderer;
+        $this->engine = $engine;
     }
 
-    public function getRenderer()
+    public function getEngine()
     {
-        return $this->renderer;
+        return $this->engine;
     }
 
     public function setFormat($format)
@@ -203,6 +200,26 @@ class DefaultView
     public function supports($format)
     {
         return isset($this->customHandlers[$format]) || in_array($format, $this->supported);
+    }
+
+    /**
+     * Get the serializer service, add encoder in case its not yet set for the passed format
+     *
+     * @param string $format
+     *
+     * @return Symfony\Component\Serializer\SerializerInterface
+     */
+    protected function getSerializer($format = null)
+    {
+        if (null === $this->serializer) {
+            $this->serializer = $this->container->get('serializer');
+        }
+
+        if (null !== $format && !$this->serializer->hasEncoder($format)) {
+            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
+        }
+
+        return $this->serializer;
     }
 
     /**
@@ -253,7 +270,7 @@ class DefaultView
         $this->redirect = null;
         $this->template = null;
         $this->format = null;
-        $this->renderer = 'twig';
+        $this->engine = 'twig';
         $this->parameters = array();
     }
 
@@ -263,26 +280,6 @@ class DefaultView
     public function resetSerializer()
     {
         $this->serializer = null;
-    }
-
-    /**
-     * Get the serializer service, add encoder in case its not yet set for the passed format
-     *
-     * @param string $format
-     *
-     * @return Symfony\Component\Serializer\SerializerInterface
-     */
-    protected function getSerializer($format = null)
-    {
-        if (null === $this->serializer) {
-            $this->serializer = $this->container->get('serializer');
-        }
-
-        if (null !== $format && !$this->serializer->hasEncoder($format)) {
-            $this->serializer->addEncoder($format, $this->container->get('encoder.'.$format));
-        }
-
-        return $this->serializer;
     }
 
     /**
