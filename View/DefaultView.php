@@ -4,10 +4,8 @@ namespace Liip\ViewBundle\View;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use Symfony\Component\Serializer\Encoder\TemplatingAwareEncoderInterface;
 
 /*
@@ -23,9 +21,8 @@ use Symfony\Component\Serializer\Encoder\TemplatingAwareEncoderInterface;
  * DefaultView is a default view implementation
  *
  * Use it in controllers to build up a response in a format agnostic way
- * The View class takes care of encoding your data in json, xml, or renders a template for html.
- *
- * It is of course extensible and overrideable to provide a very flexible solution
+ * The View class takes care of encoding your data in json, xml, or renders a template for html
+ * via the Serializer component.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  * @author Lukas K. Smith <smith@pooteeweet.org>
@@ -33,7 +30,6 @@ use Symfony\Component\Serializer\Encoder\TemplatingAwareEncoderInterface;
 class DefaultView
 {
     protected $container;
-    protected $globalParameters;
     protected $customHandlers = array();
     protected $supported = array();
     protected $serializer;
@@ -47,18 +43,12 @@ class DefaultView
     /**
      * Constructor
      *
-     * Takes an optional array of global parameters, those will be merged with the
-     * normal parameters before rendering an html template, which makes them useful for
-     * data that you need to have accessible in the layout for every page on your site.
-     *
      * @param ContainerInterface $container The service_container service.
-     * @param array $globalParameters optional global array of parameters for html templates
      */
-    public function __construct(ContainerInterface $container, array $globalParameters = array())
+    public function __construct(ContainerInterface $container)
     {
         $this->reset();
         $this->container = $container;
-        $this->globalParameters = $globalParameters;
     }
 
     /**
@@ -102,31 +92,54 @@ class DefaultView
         $this->redirect = array('location' => $uri, 'status_code' => $code);
     }
 
+    /**
+     * Gets a redirect
+     *
+     * @return array redirect location and status code
+     */
     public function getRedirect()
     {
         return $this->redirect;
     }
 
+    /**
+     * Sets encoding parameters
+     *
+     * @param string|array $parameters parameters to be used in the encoding
+     */
     public function setParameters($parameters)
     {
         $this->parameters = $parameters;
     }
 
-    public function getParameters($withGlobals = true)
+    /**
+     * Gets encoding parameters
+     *
+     * @return string|array parameters to be used in the encoding
+     */
+    public function getParameters()
     {
-        $parameters = $this->parameters;
-        if ($withGlobals) {
-            $parameters = array_merge($this->getGlobalParameters(), $parameters);
-        }
-
-        return $parameters;
+        return $this->parameters;
     }
 
+    /**
+     * Sets template to use for the encoding
+     *
+     * @param string|array $template template to be used in the encoding
+     */
     public function setTemplate($template)
     {
         $this->template = $template;
     }
 
+    /**
+     * Gets template to use for the encoding
+     *
+     * When the template is an array this method
+     * ensures that the format and engine are set
+     *
+     * @return string|array template to be used in the encoding
+     */
     public function getTemplate()
     {
         if (!is_array($this->template)) {
@@ -146,34 +159,44 @@ class DefaultView
         return $template;
     }
 
+    /**
+     * Sets engine to use for the encoding
+     *
+     * @param string $engine engine to be used in the encoding
+     */
     public function setEngine($engine)
     {
         $this->engine = $engine;
     }
 
+    /**
+     * Gets engine to use for the encoding
+     *
+     * @return string engine to be used in the encoding
+     */
     public function getEngine()
     {
         return $this->engine;
     }
 
+    /**
+     * Sets encoding format
+     *
+     * @param string $format format to be used in the encoding
+     */
     public function setFormat($format)
     {
         $this->format = $format;
     }
 
+    /**
+     * Gets encoding format
+     *
+     * @return string format to be used in the encoding
+     */
     public function getFormat()
     {
         return $this->format;
-    }
-
-    public function setGlobalParameters(array $globalParameters)
-    {
-        $this->globalParameters = $globalParameters;
-    }
-
-    public function getGlobalParameters()
-    {
-        return $this->globalParameters;
     }
 
     /**
