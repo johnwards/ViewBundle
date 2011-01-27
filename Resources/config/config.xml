@@ -11,7 +11,11 @@
         <parameter key="encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
         <parameter key="encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
         <parameter key="encoder.html.class">Symfony\Component\Serializer\Encoder\HtmlEncoder</parameter>
-
+        <parameter key="view.formats" type="collection">
+            <parameter>html</parameter>
+            <parameter>json</parameter>
+            <parameter>xml</parameter>
+        </parameter>
     </parameters>
 
     <services>
@@ -30,13 +34,7 @@
 
         <service id="view" class="%view.class%">
             <argument type="service" id="service_container" />
-            <call method="setSupported">
-                <argument type="collection">
-                    <argument>html</argument>
-                    <argument>json</argument>
-                    <argument>xml</argument>
-                </argument>
-            </call>
+            <argument>%view.formats%</argument>
         </service>
 
     </services>
