@@ -10,7 +10,7 @@
         <parameter key="serializer.class">Symfony\Component\Serializer\Serializer</parameter>
         <parameter key="encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
         <parameter key="encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
-        <parameter key="encoder.html.class">Symfony\Component\Serializer\Encoder\HtmlEncoder</parameter>
+        <parameter key="encoder.html.class">Liip\ViewBundle\Serializer\Encoder\HtmlEncoder</parameter>
         <parameter key="view.formats" type="collection">
             <parameter>html</parameter>
             <parameter>json</parameter>

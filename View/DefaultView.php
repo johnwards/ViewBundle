@@ -6,7 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Serializer\Encoder\TemplatingAwareEncoderInterface;
+use Liip\ViewBundle\Serializer\Encoder\TemplatingAwareEncoderInterface;
 
 /*
  * This file is part of the Symfony framework.
