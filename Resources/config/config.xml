@@ -6,35 +6,39 @@
 
     <parameters>
 
-        <parameter key="view.class">Liip\ViewBundle\View\DefaultView</parameter>
-        <parameter key="serializer.class">Symfony\Component\Serializer\Serializer</parameter>
-        <parameter key="encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
-        <parameter key="encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
-        <parameter key="encoder.html.class">Liip\ViewBundle\Serializer\Encoder\HtmlEncoder</parameter>
-        <parameter key="view.formats" type="collection">
+        <parameter key="liip_view.class">Liip\ViewBundle\View\DefaultView</parameter>
+
+        <parameter key="liip_view.serializer.class">Symfony\Component\Serializer\Serializer</parameter>
+
+        <parameter key="liip_view.encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
+        <parameter key="liip_view.encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
+        <parameter key="liip_view.encoder.html.class">Liip\ViewBundle\Serializer\Encoder\HtmlEncoder</parameter>
+
+        <parameter key="liip_view.formats" type="collection">
             <parameter>html</parameter>
             <parameter>json</parameter>
             <parameter>xml</parameter>
         </parameter>
+
     </parameters>
 
     <services>
 
-        <service id="encoder.json" class="%encoder.json.class%" />
+        <service id="liip_view.encoder.json" class="%liip_view.encoder.json.class%" />
 
-        <service id="encoder.xml" class="%encoder.xml.class%" />
+        <service id="liip_view.encoder.xml" class="%liip_view.encoder.xml.class%" />
 
-        <service id="encoder.html" class="%encoder.html.class%">
+        <service id="liip_view.encoder.html" class="%liip_view.encoder.html.class%">
             <call method="setTemplating">
                 <argument type="service" id="templating" />
             </call>
         </service>
 
-        <service id="serializer" class="%serializer.class%" />
+        <service id="liip_view.serializer" class="%liip_view.serializer.class%" />
 
-        <service id="view" class="%view.class%">
+        <service id="liip_view" class="%liip_view.class%">
             <argument type="service" id="service_container" />
-            <argument>%view.formats%</argument>
+            <argument>%liip_view.formats%</argument>
         </service>
 
     </services>
