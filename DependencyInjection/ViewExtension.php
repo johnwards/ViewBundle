@@ -18,6 +18,14 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class ViewExtension extends Extension
 {
     /**
+     * Yaml config files to load
+     * @var array
+     */
+    protected $resources = array(
+        'config' => 'config.xml',
+    );
+
+    /**
      * Loads the services based on your application configuration.
      *
      * @param array $configs
@@ -30,12 +38,22 @@ class ViewExtension extends Extension
             $config = array_replace_recursive($config, $tmp);
         }
 
-        $loader = new XmlFileLoader($container, __DIR__.'/../Resources/config');
-        $loader->load('config.xml');
+        $loader = $this->getFileLoader($container);
+        $loader->load($this->resources['config']);
 
         foreach ($config as $key => $value) {
             $container->setParameter($this->getAlias().'.'.$key, $value);
         }
+    }
+
+    /**
+     * Get File Loader
+     *
+     * @param ContainerBuilder $container
+     */
+    public function getFileLoader($container)
+    {
+        return new XmlFileLoader($container, __DIR__.'/../Resources/config');
     }
 
     /**
