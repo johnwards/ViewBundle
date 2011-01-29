@@ -262,7 +262,7 @@ class DefaultView
         }
 
         if (null !== $format && !$this->serializer->hasEncoder($format)) {
-            $this->serializer->addEncoder($format, $this->container->get('liip_view.encoder.'.$format));
+            $this->serializer->setEncoder($format, $this->container->get('liip_view.encoder.'.$format));
         }
 
         return $this->serializer;
