@@ -2,7 +2,7 @@
 
 namespace Liip\ViewBundle\Serializer\Encoder;
 
-use Symfony\Component\Serializer\Encoder\XMLEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Templating\EngineInterface;
 
 /**
