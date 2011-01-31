@@ -10,7 +10,7 @@ use Symfony\Component\Templating\EngineInterface;
  *
  * @author Lukas Smith <smith@pooteeweet.org>
  */
-class HtmlEncoder extends XMLEncoder implements TemplatingAwareEncoderInterface
+class HtmlEncoder extends XmlEncoder implements TemplatingAwareEncoderInterface
 {
     protected $templating;
     protected $template;
