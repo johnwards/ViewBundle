@@ -11,6 +11,9 @@ and separation of view related logic. It cannot cover all use cases for everybod
 However it should provide all required extension points to do anything view related
 without having to touch the controller logic.
 
+The view layer uses the Symfony Serializer component, which enables registering encoders
+to support different formats as well as normalizers to transform objects to arrays.
+
 Status Quo
 ----------
 
@@ -57,20 +60,20 @@ at all.
 
     <?php
 
-    namespace Application\MyBundle\Controller;
+    namespace MyProject\MyBundle\Controller;
 
     class DefaultController
     {
         /**
          * view layer
-         * @var Application\MyBundle\View\DefaultView
+         * @var Liip\View\DefaultView
          */
         protected $view;
 
         /**
          * Constructor
          *
-         * @param Application\MyBundle\View\DefaultView $view view layer
+         * @param MyProject\MyBundle\View\DefaultView $view view layer
          */
         public function __construct($view)
         {
@@ -84,7 +87,7 @@ at all.
          */
         public function indexAction()
         {
-            $this->view->setTemplate('MyBundle:Default:index.twig');
+            $this->view->setTemplate('bundle' => 'MyBundle, 'controller' => Default, 'name' => index');
             return $this->view->handle();
         }
 
@@ -103,67 +106,8 @@ at all.
             // Get the view service from the container or inject it in the constructor
             $view = $this->view;
             $view->setParameters($parameters);
-            $view->setTemplate('MyBundle:My:view.twig');
+            $this->view->setTemplate('bundle' => 'MyBundle, 'controller' => Default, 'name' => view');
             return $view->handle($this->request);
-        }
-    }
-
-
-Global Parameters
------------------
-
-The centralized view object also allows for any number of parameters to be
-passed into every template. These global parameters can be set in the view
-configuration and then accessed inside any template that uses the view layer.
-
-Setting static parameters in the service definition:
-
-    services:
-        MyView:
-            class: Application\MyBundle\View\MyView
-            arguments:
-                container: @service_container
-                params:
-                    yuiCDN: %foo.yuiCDN%
-                    yuiFilter: %foo.yuiFilter%
-                    yuiModules: %foo.yuiModules%
-                    cssURL: %foo.cssURL%
-            shared: true
-        MyDefault:
-            class: Application\MyBundle\Controller\DefaultController
-            arguments:
-                view: @MyView
-
-Setting dynamic parameters by extending the base class:
-
-    <?php
-
-    namespace Application\MyBundle\View;
-
-    use Symfony\Component\HttpFoundation\Response;
-    use Symfony\Component\HttpFoundation\Request;
-
-    class MyView extends \Liip\ViewBundle\View\DefaultView
-    {
-        /**
-         * Html parameter transformer
-         *
-         * Merges the global parameters with the given parameters and then
-         * renders the given template
-         *
-         * @param Request $request
-         * @param Response $response
-         * @param mixed $parameters
-         *
-         * @return string
-         */
-        protected function transformHtml(Request $request, Response $response, $parameters)
-        {
-            $parameters = (array)$parameters;
-            $parameters['csrf_token'] = hash('md5', $this->container->getParameter('csrf_secret').session_id());
-            $parameters['debug'] = $this->container->getParameter('kernel.debug');
-
-            return parent::transformHtml($request, $response, $parameters);
         }
     }
 
@@ -200,6 +144,30 @@ you the power to choose how to process and handle specific formats on an
 application-wide (`Using a Custom View`_) or controller-specific (`Custom Format Handler`_)
 basis.
 
+Configuration
+-------------
+
+To review all the available options have a look at the ``config.xml`` stored
+in the ``Resources\config`` directory.
+
+Registering a custom encoder requires modifying several configuration options.
+Following an example adding support for a custom RSS encoder while removing
+support for xml. Also the default Json encoder class is to modified. Also for
+convenience the view should get an instance of the service container injected
+instead of the ``ContainerWrapper`` which is used by default to ensure that
+there is tight control over the accessable services:
+
+# app/config.yml
+liip_view.config:
+    liip_view.formats: [html, json, rss]
+    liip_view.encoder.json.class: MyProject\MyBundle\Serializer\Encoder\JsonEncoder
+    liip_view.service_container.service_id: service_container
+
+Note the service for the RSS encoder needs to be defined in a custom bundle:
+        <service id="liip_view.encoder.rss" class="MyProject\MyBundle\Serializer\Encoder\RSSEncoder" />
+
+The service must follow the naming convention ``liip_view.encoder.[format]``.
+
 Custom Format Handler
 ---------------------
 
@@ -223,7 +191,9 @@ array:
 
     public function handleJson(DefaultView $view, Request $request, Response $response)
     {
-        $content = $this->renderView($view->getTemplate().'.json', $view->getParameters());
+        $template = $view->getTemplate();
+        $template['format'] = 'json'
+        $content = $this->renderView($template, $view->getParameters());
         $json = json_encode(array('content' => $content, 'timestamp' => time()));
         $response->setContent($json);
 
@@ -243,37 +213,9 @@ registered at the top of the controller class::
     use Symfony\Component\HttpFoundation\Response;
     use Symfony\Bundle\FrameworkBundle\View\DefaultView;
 
-Another example custom handler, this time to handle RSS:
-
-    class MyController
-    {
-        public function rssFeedAction()
-        {
-            // Could also be set via DIC config
-            $this->view->registerHandler('rss', array($this, 'handleRss'));
-
-            $data = array('news' => $this->newsRepository->getLatestNews());
-
-            // Could be done in the route
-            $this->request->setRequestFormat('rss');
-
-            $this->view->setParameters($data);
-            return $this->view->handle($this->request);
-        }
-
-        public function handleRss($view, $request, $response)
-        {
-            $data = $view->getParameters();
-
-            foreach ($data['news'] as $news) {
-                // build feed content
-            }
-
-            $response->headers->set('Content-Type', 'text/xml');
-            $response->setContent($feed);
-            return $response;
-        }
-    }
+However a cleaner and more importantly more reusable approach would be to implement
+a new encoder. See the ``Liip\ViewBundle\Serializer\Encoder\HtmlEncoder.php`` for
+an example of a custom encoder.
 
 Handling Redirects
 ------------------
