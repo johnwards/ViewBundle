@@ -29,7 +29,7 @@ returns a ``Response`` object:
 
         // create a Response object using the content from a template
         return new Response($this->renderView(
-            'MyBundle:Mycontroller:index.twig.html',
+            'MyBundle:Mycontroller:index.html.twig',
             array('name' => $name)
         ));
     }
@@ -41,10 +41,10 @@ JSON, XML or any other format.
 
     public function indexAction($name)
     {
-        return $this->handle(array('name' => $name), 'MyBundle:MyController:index.twig');
+        return $this->handle(array('name' => $name), 'MyBundle:MyController:index.html.twig');
     }
 
-At the surface, the ``handle()`` method simply renders the ``MyBundle:MyController:index.twig``
+At the surface, the ``handle()`` method simply renders the ``MyBundle:MyController:index.html.twig``
 template and passes the ``$name`` variable to it. In reality, however, the
 process is much more powerful.
 
@@ -130,7 +130,7 @@ Support for any number of other formats can be added (see `Custom Format Handler
 
 In our example, the three formats would be handled in the following ways:
 
-* ``html`` ``MyBundle:MyController:index.twig.html`` is rendered;
+* ``html`` ``MyBundle:MyController:index.html.twig`` is rendered;
 
 * ``json``: The ``array('name' => $name))`` is json-encoded and the resulting
   string is used to populate the ``Response`` object;
@@ -186,7 +186,7 @@ the view attempts to handle a specific format:
 
 When the request format is ``json``, the method ``handleJson`` will be called
 on the controller object. Suppose that we'd like to render the
-``MyBundle:MyController:index.twig.json`` template and use it to build a JSON
+``MyBundle:MyController:index.json.twig`` template and use it to build a JSON
 array:
 
     public function handleJson(DefaultView $view, Request $request, Response $response)
