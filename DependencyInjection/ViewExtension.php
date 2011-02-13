@@ -23,7 +23,7 @@ class ViewExtension extends Extension
      * @var array
      */
     protected $resources = array(
-        'config' => 'config.xml',
+        'config' => 'view.xml',
     );
 
     /**
