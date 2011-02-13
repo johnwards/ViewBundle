@@ -4,6 +4,7 @@ namespace Liip\ViewBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ScopeInterface;
 
 /**
  * This is a wrapper around a Container instance to provide instances for specific services only
@@ -139,9 +140,9 @@ class ContainerWrapper extends ContainerAware implements ContainerInterface
     /**
      * @inheritDoc
      */
-    public function addScope($name, $parentScope = self::SCOPE_CONTAINER)
+    public function addScope(ScopeInterface $scope)
     {
-        return $this->container->addScope($name, $parentScope);
+        return $this->container->addScope($scope);
     }
 
     /**
