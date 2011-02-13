@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://www.symfony-project.org/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.symfony-project.org/schema/dic/services http://www.symfony-project.org/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+
+        <parameter key="liip_view.class">Liip\ViewBundle\View\DefaultView</parameter>
+
+        <parameter key="liip_view.serializer.class">Symfony\Component\Serializer\Serializer</parameter>
+
+        <parameter key="liip_view.encoder.json.class">Symfony\Component\Serializer\Encoder\JsonEncoder</parameter>
+        <parameter key="liip_view.encoder.xml.class">Symfony\Component\Serializer\Encoder\XmlEncoder</parameter>
+        <parameter key="liip_view.encoder.html.class">Liip\ViewBundle\Serializer\Encoder\HtmlEncoder</parameter>
+
+        <parameter key="liip_view.formats" type="collection">
+            <parameter>html</parameter>
+            <parameter>json</parameter>
+            <parameter>xml</parameter>
+        </parameter>
+
+        <parameter key="liip_view.service_container.class">Liip\ViewBundle\DependencyInjection\ContainerWrapper</parameter>
+
+        <parameter key="liip_view.service_container.service_id">liip_view.service_container</parameter>
+
+        <parameter key="liip_view.service_container.map" type="collection">
+            <parameter key="request">true</parameter>
+            <parameter key="response">true</parameter>
+            <parameter key="router">true</parameter>
+            <parameter key="templating">true</parameter>
+            <parameter key="liip_view.serializer">true</parameter>
+            <parameter key="liip_view.encoder.html">true</parameter>
+            <parameter key="liip_view.encoder.json">true</parameter>
+            <parameter key="liip_view.encoder.xml">true</parameter>
+        </parameter>
+
+    </parameters>
+
+    <services>
+
+        <service id="liip_view.encoder.json" class="%liip_view.encoder.json.class%" />
+
+        <service id="liip_view.encoder.xml" class="%liip_view.encoder.xml.class%" />
+
+        <service id="liip_view.encoder.html" class="%liip_view.encoder.html.class%">
+            <call method="setTemplating">
+                <argument type="service" id="templating" />
+            </call>
+        </service>
+
+        <service id="liip_view.serializer" class="%liip_view.serializer.class%" />
+
+        <service id="liip_view.service_container" class="%liip_view.service_container.class%">
+            <argument>%liip_view.service_container.map%</argument>
+            <argument type="service" id="service_container" />
+        </service>
+
+        <service id="liip_view" class="%liip_view.class%">
+            <argument type="service" id="liip_view.service_container" />
+            <argument>%liip_view.formats%</argument>
+        </service>
+
+    </services>
+</container>
