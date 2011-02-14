@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Bundle\FrameworkBundle\Templating\TemplateReference;
 use Liip\ViewBundle\Serializer\Encoder\TemplatingAwareEncoderInterface;
 
 /**
@@ -164,10 +165,23 @@ class DefaultView
     /**
      * Sets template to use for the encoding
      *
-     * @param string|array $template template to be used in the encoding
+     * @param string|array|TemplateReference $template template to be used in the encoding
      */
     public function setTemplate($template)
     {
+        if (is_array($template)) {
+            if (empty($template['name'])) {
+                throw new \InvalidArgumentException('The "name" key must be set: '.serialize($template));
+            }
+
+            $bundle = empty($template['bundle']) ? null : $template['bundle'];
+            $controller = empty($template['controller']) ? null : $template['controller'];
+            $format = empty($template['format']) ? null : $template['format'];
+            $engine = empty($template['engine']) ? null : $template['engine'];
+
+            $template = new TemplateReference($bundle, $controller, $template['name'], $format, $engine);
+        }
+
         $this->template = $template;
     }
 
@@ -177,22 +191,20 @@ class DefaultView
      * When the template is an array this method
      * ensures that the format and engine are set
      *
-     * @return string|array template to be used in the encoding
+     * @return string|TemplateReference template to be used in the encoding
      */
     public function getTemplate()
     {
-        if (!is_array($this->template)) {
-            return $this->template;
-        }
-
         $template = $this->template;
 
-        if (empty($template['format'])) {
-            $template['format'] = $this->getFormat();
-        }
+        if ($template instanceOf TemplateReference) {
+            if (null === $template->get('format')) {
+                $template->set('format', $this->getFormat());
+            }
 
-        if (empty($template['engine'])) {
-            $template['engine'] = $this->getEngine();
+            if (null === $template->get('engine')) {
+                $template->set('engine', $this->getEngine());
+            }
         }
 
         return $template;
