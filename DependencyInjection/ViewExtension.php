@@ -64,4 +64,14 @@ class ViewExtension extends Extension
     {
         return 'liip_view';
     }
+
+    public function getXsdValidationBasePath()
+    {
+        return __DIR__.'/../Resources/config/schema';
+    }
+
+    public function getNamespace()
+    {
+        return 'http://www.symfony-project.org/schema/dic/doctrine-phpcr-odm';
+    }
 }
