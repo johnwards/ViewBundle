@@ -87,7 +87,7 @@ at all.
          */
         public function indexAction()
         {
-            $this->view->setTemplate('bundle' => 'MyBundle, 'controller' => Default, 'name' => index');
+            $this->view->setTemplate(array('bundle' => 'MyBundle, 'controller' => Default, 'name' => index'));
             return $this->view->handle();
         }
 
@@ -106,7 +106,7 @@ at all.
             // Get the view service from the container or inject it in the constructor
             $view = $this->view;
             $view->setParameters($parameters);
-            $this->view->setTemplate('bundle' => 'MyBundle, 'controller' => Default, 'name' => view');
+            $this->view->setTemplate(array('bundle' => 'MyBundle, 'controller' => Default, 'name' => view'));
             return $view->handle($this->request);
         }
     }
