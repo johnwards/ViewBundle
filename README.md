@@ -158,7 +158,7 @@ instead of the ``ContainerWrapper`` which is used by default to ensure that
 there is tight control over the accessable services:
 
 # app/config.yml
-liip_view.config:
+liip_view:
     liip_view.formats: [html, json, rss]
     liip_view.encoder.json.class: MyProject\MyBundle\Serializer\Encoder\JsonEncoder
     liip_view.service_container.service_id: service_container
