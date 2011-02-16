@@ -11,6 +11,7 @@
 
 namespace Liip\ViewBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Configuration\Processor;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -19,7 +20,7 @@ use Symfony\Component\Config\FileLocator;
 class LiipViewExtension extends Extension
 {
     /**
-     * Yaml config files to load
+     * Xml config files to load
      * @var array
      */
     protected $resources = array(
@@ -34,17 +35,27 @@ class LiipViewExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $config = array_shift($configs);
-        foreach ($configs as $tmp) {
-            $config = array_replace_recursive($config, $tmp);
-        }
+        // TODO move this to the Configuration class as soon as it supports setting such a default
+        array_unshift($configs, array(
+            'formats' => array(
+                'json' => 'liip_view.encoder.json',
+                'xml' => 'liip_view.encoder.xml',
+                'html' => 'liip_view.encoder.html',
+            )
+        ));
+
+        $processor = new Processor();
+        $configuration = new Configuration();
+        $config = $processor->process($configuration->getConfigTree(), $configs);
 
         $loader = $this->getFileLoader($container);
         $loader->load($this->resources['config']);
 
-        foreach ($config as $key => $value) {
-            $container->setParameter($this->getAlias().'.'.$key, $value);
+        foreach ($config['class'] as $key => $value) {
+            $container->setParameter($this->getAlias().'.'.$key.'.class', $value);
         }
+
+        $container->setParameter($this->getAlias().'.formats', $config['formats']);
     }
 
     /**

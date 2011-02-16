@@ -147,26 +147,20 @@ basis.
 Configuration
 -------------
 
-To review all the available options have a look at the ``config.xml`` stored
-in the ``Resources\config`` directory.
-
 Registering a custom encoder requires modifying several configuration options.
 Following an example adding support for a custom RSS encoder while removing
-support for xml. Also the default Json encoder class is to modified. Also for
-convenience the view should get an instance of the service container injected
-instead of the ``ContainerWrapper`` which is used by default to ensure that
-there is tight control over the accessable services:
+support for xml. Also the default Json encoder class is to modified:
 
 # app/config.yml
 liip_view:
-    liip_view.formats: [html, json, rss]
-    liip_view.encoder.json.class: MyProject\MyBundle\Serializer\Encoder\JsonEncoder
-    liip_view.service_container.service_id: service_container
+    liip_view.formats:
+            rss: my.encoder.rss
+            xml: false
+    class:
+        json: MyProject\MyBundle\Serializer\Encoder\JsonEncoder
 
 Note the service for the RSS encoder needs to be defined in a custom bundle:
-        <service id="liip_view.encoder.rss" class="MyProject\MyBundle\Serializer\Encoder\RSSEncoder" />
-
-The service must follow the naming convention ``liip_view.encoder.[format]``.
+        <service id="my.encoder.rss" class="MyProject\MyBundle\Serializer\Encoder\RSSEncoder" />
 
 Custom Format Handler
 ---------------------

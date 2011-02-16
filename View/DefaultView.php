@@ -23,9 +23,10 @@ class DefaultView
 {
     protected $container;
     protected $serializer;
-    protected $customHandlers = array();
 
-    protected $supported;
+    protected $customHandlers = array();
+    protected $formats;
+
     protected $redirect;
     protected $template;
     protected $format;
@@ -36,12 +37,12 @@ class DefaultView
      * Constructor
      *
      * @param ContainerInterface $container The service_container service.
-     * @param array $supported The supported formats
+     * @param array $formats The supported formats
      */
-    public function __construct(ContainerInterface $container, array $supported = null)
+    public function __construct(ContainerInterface $container, array $formats = null)
     {
         $this->reset();
-        $this->supported = (array) $supported;
+        $this->formats = (array)$formats;
         $this->container = $container;
     }
 
@@ -68,16 +69,11 @@ class DefaultView
     /**
      * Sets what formats are supported
      *
-     * @param array $supported list of supported formats
-     * @param bool $append if to append to the existing list
+     * @param array $formats list of supported formats
      */
-    public function setSupported($supported, $append = true)
+    public function setFormats($formats)
     {
-        if ($append) {
-            $supported+= $this->supported;
-        }
-
-        $this->supported = $supported;
+        $this->formats = array_replace($this->formats, $formats);
     }
 
     /**
@@ -88,7 +84,7 @@ class DefaultView
      */
     public function supports($format)
     {
-        return isset($this->customHandlers[$format]) || in_array($format, $this->supported);
+        return isset($this->customHandlers[$format]) || !empty($this->formats[$format]);
     }
 
     /**
@@ -274,7 +270,7 @@ class DefaultView
         }
 
         if (null !== $format && !$this->serializer->hasEncoder($format)) {
-            $this->serializer->setEncoder($format, $this->container->get('liip_view.encoder.'.$format));
+            $this->serializer->setEncoder($format, $this->container->get($this->formats[$format]));
         }
 
         return $this->serializer;
