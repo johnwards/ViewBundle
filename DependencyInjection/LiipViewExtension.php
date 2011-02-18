@@ -11,7 +11,7 @@
 
 namespace Liip\ViewBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\DependencyInjection\Configuration\Processor;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
