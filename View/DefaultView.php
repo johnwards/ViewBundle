@@ -293,7 +293,7 @@ class DefaultView
         }
 
         if (null === $response) {
-            $response = $this->container->get('response');
+            $response = new Response();
         }
 
         if (null === $this->format) {
