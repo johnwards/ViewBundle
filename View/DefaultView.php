@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Templating\TemplateReference;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Liip\ViewBundle\Serializer\Encoder\TemplatingAwareEncoderInterface;
 
 /**
@@ -332,7 +333,10 @@ class DefaultView
     protected function transform(Request $request, Response $response, $format, $template)
     {
         if ($this->redirect) {
-            $response->setRedirect($this->redirect['location'], $this->redirect['status_code']);
+            $redirect = new RedirectResponse($this->redirect['location'], $this->redirect['status_code']);
+            $response->setContent($redirect->getContent());
+            $response->setStatusCode($this->redirect['status_code']);
+            $response->headers->set('Location', $redirect->headers->get('Location'));
             return $response;
         }
 

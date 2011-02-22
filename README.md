@@ -58,6 +58,9 @@ When the format is ``html`` the parameters will be passed to the template layer,
 ``xml`` and ``json`` the parameters serialized accordingly without going through the template layer
 at all.
 
+See http://docs.symfony-reloaded.org/master/guides/dependency_injection/overview.html for information
+on how the different approaches for injection work.
+
     <?php
 
     namespace MyProject\MyBundle\Controller;
@@ -241,8 +244,7 @@ from earlier and add some redirect logic to it:
     public function handleJson(DefaultView $view, Request $request, Response $response)
     {
         if ($redirect = $view->getRedirect()) {
-            $response->setRedirect($redirect['location'], $redirect['status_code']);
-            return $response;
+            return new RedirectResponse($redirect['location'], $redirect['status_code']);
         }
 
         // ... the remainder of the handling
